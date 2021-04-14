@@ -56,20 +56,23 @@ def data_loader(data_path, type , shuffle = True):
 
     all_image_paths = list(data_root.glob('*/*'))
     all_image_paths = [str(path) for path in all_image_paths]
-    print(all_image_paths)
+    # print(all_image_paths)
     # random.shuffle(all_image_paths)
 
     image_count = len(all_image_paths)
     print(image_count)
 
     label_names = sorted(item.name for item in data_root.glob('*') if item.is_dir())
-    # print("label_names:", label_names)
+    print("label_names:", label_names)
 
     label_to_index = dict((name, index) for index, name in enumerate(label_names))
     print("label_to_index:", label_to_index)
     all_image_labels = [label_to_index[pathlib.Path(path).parent.name]
                         for path in all_image_paths]
-    print("First labels indices: ", all_image_labels[:-1])
+    # print("First labels indices: ", all_image_labels[:-1])
+
+    for image, label in zip(all_image_paths[:5], all_image_labels[:5]):
+        print(image, ' --->  ', label)
 
     # print(len(all_image_labels))
     # img_path = all_image_paths[0]
@@ -95,6 +98,14 @@ def data_loader(data_path, type , shuffle = True):
 
     image_label_ds = ds.map(load_and_preprocess_from_path_label)
     print(image_label_ds)
+    count = 0
+    for item in image_label_ds:
+        print("image_label_ds:")
+        print("{} --> {}".format(item,item[item]))
+        count = count+1
+        if(count >= 1):
+            break;
+
 
     # 设置一个和数据集大小一致的 shuffle buffer size（随机缓冲区大小）以保证数据被充分打乱。
     image_label_ds = image_label_ds.apply(
@@ -144,16 +155,29 @@ def load_test_data(data_path):
     :param labelpath: 标签文件(.txt）文件地址
     :returns images: 图片集
              labels: 字典--图片对应label
+             imagespath
     """
     datapath,labelpath = preprocess_datapath(data_path, "test")
-    images = os.listdir(datapath)
-    # print(images)
+    imagepath = os.listdir(datapath)
+
+    images = []
+    # for i in range(len(imagepath)):
+    #     imagepath[i] = datapath + imagepath[i]
+    # path_ds = tf.data.Dataset.from_tensor_slices(imagepath).map(tf.io.read_file)
+    #
+    # image_ds = path_ds.map(load_and_preprocess_image, num_parallel_calls=AUTOTUNE)
+    # print(image_ds)
+    for i in range(len(imagepath)):
+        # print(datapath+imagepath[i])
+        images.append( load_and_preprocess_image(datapath+imagepath[i]))
+    images = tf.stack(images, axis=0)
+    print(images)
 
     labels = open(labelpath,"r",encoding='utf-8').readlines()
     labels = [line.split(' ') for line in labels]
     labels = dict(labels)
     # print(labels)
-    return images,labels
+    return images,labels,imagepath
 
 
 
@@ -200,8 +224,8 @@ if __name__ == "__main__":
     filepath = "D:\BaiduNetdiskDownload\dataset_release/release_data"
 
     train_data = data_loader(filepath,type="train",shuffle= True)
-    val_data = data_loader(filepath,type="val",shuffle=True)
+    # val_data = data_loader(filepath,type="val",shuffle=True)
     # val_data = load_data_by_keras(filepath,type="val",shuffle=True)
 
-    # test_images,true_labels =load_test_data(filepath)
-    # print(true_labels[test_images[1]])
+    # test_images,true_labels,test_imagepath =load_test_data(filepath)
+    # print(true_labels[test_imagepath[1]])

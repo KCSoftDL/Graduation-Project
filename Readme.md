@@ -3,7 +3,7 @@
 
 环境需求：TensorFlow2.0+
 
-[TOC]
+
 
 ## 1 数据集读取
 
@@ -60,3 +60,20 @@ ChineseFoodNet的数据集结构如下：
 ### 1.2 数据集读取
 
 对数据集的读取工作，使用`Datasets_loader.py`文件下`data_loader(data_path, type)`函数即可。`data_path`指定为数据集根目录即可。该函数会返回一个tf.data.Datasets的Dataset，该Dataset包含了数据集及对应labels，可直接进行训练。
+
+## 2 数据处理
+
+### 2.1 
+
+
+
+## 3 模型训练
+
+### 3.1 模型介绍
+
+`Relation_Learning_Network.py`文件下有：
+
+- [x] -`network()`表示关系型学习网络
+- [x] -`merge_input(x1，x2)`方法可实现对特征图谱x1,x2的深度拼接
+- [ ] -embed_Network():
+  - [ ] 用于三元组特征提取
