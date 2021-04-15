@@ -7,7 +7,7 @@ import imagenet_classes
 
 
 
-def network(weight = None,
+def relationship_network(weight = None,
             input_tensor = None,
             input_shape = None):
     """
@@ -60,12 +60,15 @@ def network(weight = None,
     # def network(self):
 
 
-def embed_Network():
+def embed_Network(weight = None,
+                  include_top = True,
+                  classes = 1000,
+                  input_shape = (224,224,3)):
     model = keras.applications.vgg16.VGG16(
-        weights = 'imagenet',#"./models/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5"
-        include_top = True,
-        classes = 1000,
-        input_shape = (224,224,3))
+        weights = weight,#"./models/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5"
+        include_top = include_top,
+        classes = classes,
+        input_shape = input_shape)
 
     return model
 
@@ -84,15 +87,18 @@ def merge_input(x1,x2):
 
 if __name__ == "__main__":
 
-    # model = embed_Network()
-    # model.summary()
+    model = embed_Network(weight='imagenet',
+                          include_top=True,
+                          classes=1000,
+                          input_shape = (224,224,3))
+    model.summary()
 
     images = []
     filepath = "D:\Programming/tensorflow\data\img3.jpg"
     image = load_and_preprocess_image(filepath)
     images.append(image)
     image = load_and_preprocess_image("D:\Programming/tensorflow\data\img9.jpg")
-    # images.append(image)
+    images.append(image)
     # plt.imshow(image)
     # plt.show()
 
@@ -105,8 +111,9 @@ if __name__ == "__main__":
     # outputs = model.output
     # output = fc_layer(outputs,6)
     # model = keras.Model(model.input,output)
-    model = network(input_shape=(224,224,3),weight=None)
-    model.summary()
+
+    # model = relationship_network(input_shape=(224,224,3),weight=None)
+    # model.summary()
 
     result = model.predict(images)
     print(result.shape)

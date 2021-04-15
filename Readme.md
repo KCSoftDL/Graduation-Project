@@ -13,6 +13,12 @@
 
 ChineseFoodNet的数据集结构如下：
 
+```
+gd
+```
+
+
+
 ```bash
 /datasets
 	/train
@@ -77,3 +83,4 @@ ChineseFoodNet的数据集结构如下：
 - [x] -`merge_input(x1，x2)`方法可实现对特征图谱x1,x2的深度拼接
 - [ ] -embed_Network():
   - [ ] 用于三元组特征提取
+  - [ ] limit batch hard 用于选取合适三元组

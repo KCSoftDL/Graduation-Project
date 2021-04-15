@@ -98,13 +98,14 @@ def data_loader(data_path, type , shuffle = True):
 
     image_label_ds = ds.map(load_and_preprocess_from_path_label)
     print(image_label_ds)
-    count = 0
-    for item in image_label_ds:
-        print("image_label_ds:")
-        print("{} --> {}".format(item,item[item]))
-        count = count+1
-        if(count >= 1):
-            break;
+
+    # count = 0
+    # for item in image_label_ds:
+    #     print("image_label_ds:")
+    #     print("{} --> {}".format(item,item[item]))
+    #     count = count+1
+    #     if(count >= 1):
+    #         break;
 
 
     # 设置一个和数据集大小一致的 shuffle buffer size（随机缓冲区大小）以保证数据被充分打乱。
@@ -174,6 +175,7 @@ def load_test_data(data_path):
     print(images)
 
     labels = open(labelpath,"r",encoding='utf-8').readlines()
+
     labels = [line.split(' ') for line in labels]
     labels = dict(labels)
     # print(labels)
