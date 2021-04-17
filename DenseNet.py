@@ -1,3 +1,4 @@
+import time
 import tensorflow as tf
 import tensorflow.keras as keras
 import matplotlib.pyplot as plt
@@ -77,8 +78,13 @@ if __name__ == "__main__":
     #                     epochs=epoch,
     #                     verbose = 2,
     #                     steps_per_epoch = steps_per_epoch,
+    #                     validation_data= val_data,
     #                     callbacks=[TensorBoard(),reduce_lr])
     # print('history dict:', history.history)
+
+    # localtime = time.strftime("%y-%m-%d-%H:%M:%S", time.localtime())
+    # print(localtime)
+
     # acc = history.history['accuracy']
     # val_acc = history.history['val_accuracy']
     #
@@ -102,6 +108,7 @@ if __name__ == "__main__":
     # plt.ylim([0,1.0])
     # plt.title('Training and Validation Loss')
     # plt.xlabel('epoch')
+    # plt.savefig("./models/DenseNet_in_{}".format(localtime))
     # plt.show()
 
     # model.save("./models/DenseNet.h5")
