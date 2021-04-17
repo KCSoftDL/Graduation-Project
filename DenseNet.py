@@ -1,5 +1,6 @@
 import tensorflow as tf
 import tensorflow.keras as keras
+import matplotlib.pyplot as plt
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.callbacks import ReduceLROnPlateau
 from Datasets_loader import data_loader,load_test_data
@@ -16,7 +17,24 @@ def add_new_last_layer(base_model, nb_classes):
     x = keras.layers.GlobalAveragePooling2D(name='avg_pool')(x)
     x = keras.layers.Flatten(name='flatten')(x)
     predictions = keras.layers.Dense(nb_classes, activation='softmax')(x) #new softmax layer
-    model = tf.keras.Model(base_model.inputs, predictions)
+    model = tf.keras.Model(base_model.inputs, predictions,name="DenseNet121")
+    return model
+
+def ClassificationLayer(base_model, nb_classes):
+    '''
+    添加分类层
+    :param base_model:
+    :param nb_classes:
+    :return:
+    '''
+    global_average_layer = keras.layers.GlobalAveragePooling2D(name='avg_pool')
+    flatten_layer = keras.layers.Flatten(name='flatten')
+    prediction_layer = keras.layers.Dense(nb_classes, activation='softmax')
+    model = keras.Sequential([base_model,
+                              global_average_layer,
+                              flatten_layer,
+                              prediction_layer
+    ],name="My_DenseNet121")
     return model
 
 if __name__ == "__main__":
@@ -26,16 +44,19 @@ if __name__ == "__main__":
     learning_rate = 0.001
 
     filepath = "D:\BaiduNetdiskDownload\dataset_release/release_data"
-    train_data = data_loader(filepath, type="train", shuffle=True)
-    val_data = data_loader(filepath,type="val",shuffle=True)
+    train_data,train_num = data_loader(filepath, type="train", shuffle=True)
+    # val_data = data_loader(filepath,type="val",shuffle=True)
     # test_images,true_labels,test_imagepath =load_test_data(filepath)
 
-    model = keras.applications.densenet.DenseNet121(weights='./DenseNet-BC-121-32-no-top.h5',
+    base_model = keras.applications.densenet.DenseNet121(weights='./models/DenseNet-BC-121-32-no-top.h5',
                                                     include_top=False,
                                                     input_tensor=None,
                                                     pooling=None,
                                                     input_shape=[224,224,3])
-    model = add_new_last_layer(model, 208)
+    base_model.trainable = False
+
+    # model = add_new_last_layer(base_model, 208)
+    model = ClassificationLayer(base_model,208)
 
     model.build((batch_size, 224, 224, 3))
     optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate,
@@ -49,17 +70,42 @@ if __name__ == "__main__":
                   optimizer=optimizer,
                   metrics=['accuracy'])
     model.summary()
-    reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.2,
-                                  patience=5, min_lr=0.001)
-    history = model.fit(train_data,
-                        epochs=epoch,
-                        verbose = 2,
-                        steps_per_epoch = 256,
-                        callbacks=[TensorBoard(),reduce_lr])
-    print('history dict:', history.history)
+    steps_per_epoch = round(train_num / batch_size)
+    # reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.2,
+    #                               patience=5, min_lr=0.001)
+    # history = model.fit(train_data,
+    #                     epochs=epoch,
+    #                     verbose = 2,
+    #                     steps_per_epoch = steps_per_epoch,
+    #                     callbacks=[TensorBoard(),reduce_lr])
+    # print('history dict:', history.history)
+    # acc = history.history['accuracy']
+    # val_acc = history.history['val_accuracy']
+    #
+    # loss = history.history['loss']
+    # val_loss = history.history['val_loss']
+    #
+    # plt.figure(figsize=(8, 8))
+    # plt.subplot(2, 1, 1)
+    # plt.plot(acc, label='Training Accuracy')
+    # plt.plot(val_acc, label='Validation Accuracy')
+    # plt.legend(loc='lower right')
+    # plt.ylabel('Accuracy')
+    # plt.ylim([min(plt.ylim()),1])
+    # plt.title('Training and Validation Accuracy')
+    #
+    # plt.subplot(2, 1, 2)
+    # plt.plot(loss, label='Training Loss')
+    # plt.plot(val_loss, label='Validation Loss')
+    # plt.legend(loc='upper right')
+    # plt.ylabel('Cross Entropy')
+    # plt.ylim([0,1.0])
+    # plt.title('Training and Validation Loss')
+    # plt.xlabel('epoch')
+    # plt.show()
 
-    model.save("./models/DenseNet.h5")
-    print("Success Save Model!")
-
-    model.evaluate(val_data)
+    # model.save("./models/DenseNet.h5")
+    # print("Success Save Model!")
+    #
+    # model.evaluate(val_data)
 

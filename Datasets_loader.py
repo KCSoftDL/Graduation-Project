@@ -10,7 +10,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 im_height = 224
 im_width = 224
-batch_size = 64
+batch_size = 32
 epochs = 1000
 
 def preprocess_datapath(data_path,type):
@@ -117,7 +117,7 @@ def data_loader(data_path, type , shuffle = True):
     image_label_ds = image_label_ds.prefetch(buffer_size=AUTOTUNE)
     print(image_label_ds)
 
-    return image_label_ds
+    return image_label_ds,image_count
 
 def load_and_preprocess_image(path):
   image = tf.io.read_file(path)
