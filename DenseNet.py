@@ -1,10 +1,12 @@
 import time
+import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
 import matplotlib.pyplot as plt
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.callbacks import ReduceLROnPlateau
 from Datasets_loader import data_loader,load_test_data
+from tensorflow.keras.utils import plot_model
 
 def add_new_last_layer(base_model, nb_classes):
     '''
@@ -44,9 +46,9 @@ if __name__ == "__main__":
     batch_size = 32
     learning_rate = 0.001
 
-    filepath = "D:\BaiduNetdiskDownload\dataset_release/release_data"
+    filepath = "D:\datasets\ChineseFoodNet/release_data"
     train_data,train_num = data_loader(filepath, type="train", shuffle=True)
-    # val_data = data_loader(filepath,type="val",shuffle=True)
+    val_data = data_loader(filepath,type="val",shuffle=True)
     # test_images,true_labels,test_imagepath =load_test_data(filepath)
 
     base_model = keras.applications.densenet.DenseNet121(weights='./models/DenseNet-BC-121-32-no-top.h5',
@@ -71,48 +73,62 @@ if __name__ == "__main__":
                   optimizer=optimizer,
                   metrics=['accuracy'])
     model.summary()
+    plot_model(model, to_file='model.png')
     steps_per_epoch = round(train_num / batch_size)
-    # reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.2,
-    #                               patience=5, min_lr=0.001)
-    # history = model.fit(train_data,
-    #                     epochs=epoch,
-    #                     verbose = 2,
-    #                     steps_per_epoch = steps_per_epoch,
-    #                     validation_data= val_data,
-    #                     callbacks=[TensorBoard(),reduce_lr])
-    # print('history dict:', history.history)
+    reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.2,
+                                  patience=5, min_lr=0.001)
 
-    # localtime = time.strftime("%y-%m-%d-%H:%M:%S", time.localtime())
-    # print(localtime)
+    model_name = "DenseNet-{}".format(int(time.time()))
+    tensorboard = TensorBoard(log_dir='logs/{}'.format(model_name))
+    history = model.fit(train_data,
+                        epochs=epoch,
+                        verbose = 2,
+                        steps_per_epoch = steps_per_epoch,
+                        validation_data= val_data,
+                        # callbacks=[tensorboard,reduce_lr]
+                        )
+    print('history dict:', history.history)
 
-    # acc = history.history['accuracy']
-    # val_acc = history.history['val_accuracy']
-    #
-    # loss = history.history['loss']
-    # val_loss = history.history['val_loss']
-    #
-    # plt.figure(figsize=(8, 8))
-    # plt.subplot(2, 1, 1)
-    # plt.plot(acc, label='Training Accuracy')
-    # plt.plot(val_acc, label='Validation Accuracy')
-    # plt.legend(loc='lower right')
-    # plt.ylabel('Accuracy')
-    # plt.ylim([min(plt.ylim()),1])
-    # plt.title('Training and Validation Accuracy')
-    #
-    # plt.subplot(2, 1, 2)
-    # plt.plot(loss, label='Training Loss')
-    # plt.plot(val_loss, label='Validation Loss')
-    # plt.legend(loc='upper right')
-    # plt.ylabel('Cross Entropy')
-    # plt.ylim([0,1.0])
-    # plt.title('Training and Validation Loss')
-    # plt.xlabel('epoch')
-    # plt.savefig("./models/DenseNet_in_{}".format(localtime))
-    # plt.show()
+    localtime = time.strftime("%y-%m-%d-%H:%M:%S", time.localtime())
+    print(localtime)
 
-    # model.save("./models/DenseNet.h5")
-    # print("Success Save Model!")
+    acc = history.history['accuracy']
+    val_acc = history.history['val_accuracy']
+
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+
+    plt.figure(figsize=(8, 8))
+    plt.subplot(2, 1, 1)
+    plt.plot(acc, label='Training Accuracy')
+    plt.plot(val_acc, label='Validation Accuracy')
+    plt.legend(loc='lower right')
+    plt.ylabel('Accuracy')
+    plt.ylim([min(plt.ylim()),1])
+    plt.title('Training and Validation Accuracy')
+
+    plt.subplot(2, 1, 2)
+    plt.plot(loss, label='Training Loss')
+    plt.plot(val_loss, label='Validation Loss')
+    plt.legend(loc='upper right')
+    plt.ylabel('Cross Entropy')
+    plt.ylim([0,1.0])
+    plt.title('Training and Validation Loss')
+    plt.xlabel('epoch')
+    plt.savefig("./models/DenseNet_in_{}".format(localtime))
+    plt.show()
+
+    acc_text = np.array(acc)
+    val_acc_text = np.array(val_acc)
+    loss_text = np.array(loss)
+    val_loss_text = np.array(val_loss)
+    np.savetxt("./models/denseNet_acc.txt",acc_text)
+    np.savetxt("./models/denseNet_val_acc.txt", val_acc_text)
+    np.savetxt("./models/denseNet_loss.txt", loss_text)
+    np.savetxt("./models/denseNet_val_loss.txt", val_loss_text)
+
+    model.save("./models/DenseNet.h5")
+    print("Success Save Model!")
     #
     # model.evaluate(val_data)
 
