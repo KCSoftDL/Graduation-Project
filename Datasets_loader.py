@@ -10,7 +10,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 im_height = 224
 im_width = 224
-batch_size = 32
+batch_size = 128
 epochs = 1000
 
 def preprocess_datapath(data_path,type):
@@ -110,7 +110,7 @@ def data_loader(data_path, type , shuffle = True):
 
     # 设置一个和数据集大小一致的 shuffle buffer size（随机缓冲区大小）以保证数据被充分打乱。
     image_label_ds = image_label_ds.apply(
-        tf.data.experimental.shuffle_and_repeat(buffer_size=image_count))
+        tf.data.experimental.shuffle_and_repeat(buffer_size=tf.cast(image_count/batch_size,tf.int64)))
 
     image_label_ds = image_label_ds.batch(batch_size = batch_size)
 
@@ -206,28 +206,28 @@ def load_data_by_keras(data_path,type,shuffle= False):
                                                                target_size=(im_height, im_width),
                                                                class_mode='categorical')
     total_train = train_data_gen.n
-    # print(total_train)
+    print(total_train)
 
-    data, labels = train_data_gen.next()
-    print(labels)
-    print(len(labels))
-    plt.imshow(data[16, :, :, :])
-    plt.title(labels[16][0])
-    plt.show()
+    # data, labels = train_data_gen.next()
+    # print(labels)
+    # plt.imshow(data[0, :, :, :])
+    # plt.title(labels[0])
+    # plt.show()
 
     # num = 0
     # for i in range(len(labels)):
     #     num = num + len(labels[i])
     # print(num)
 
-    return train_data_gen
+    return train_data_gen,total_train
 
 if __name__ == "__main__":
-    filepath = "D:\BaiduNetdiskDownload\dataset_release/release_data"
+    # filepath = "D:\BaiduNetdiskDownload\dataset_release/release_data"
+    filepath = "D:\datasets\ChineseFoodNet/release_data"
 
-    train_data = data_loader(filepath,type="train",shuffle= True)
+    # train_data = data_loader(filepath,type="train",shuffle= True)
     # val_data = data_loader(filepath,type="val",shuffle=True)
-    # val_data = load_data_by_keras(filepath,type="val",shuffle=True)
+    val_data = load_data_by_keras(filepath,type="val",shuffle=True)
 
     # test_images,true_labels,test_imagepath =load_test_data(filepath)
     # print(true_labels[test_imagepath[1]])

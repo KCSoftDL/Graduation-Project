@@ -1,11 +1,12 @@
 import time
+import os
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
 import matplotlib.pyplot as plt
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.callbacks import ReduceLROnPlateau
-from Datasets_loader import data_loader,load_test_data
+from Datasets_loader import data_loader,load_test_data,load_data_by_keras
 from tensorflow.keras.utils import plot_model
 
 def add_new_last_layer(base_model, nb_classes):
@@ -42,14 +43,18 @@ def ClassificationLayer(base_model, nb_classes):
 
 if __name__ == "__main__":
 
+    # tf.test.is_gpu_available()
     epoch = 1000
-    batch_size = 32
-    learning_rate = 0.001
+    batch_size = 128
+    learning_rate = 0.01
 
     filepath = "D:\datasets\ChineseFoodNet/release_data"
-    train_data,train_num = data_loader(filepath, type="train", shuffle=True)
-    val_data = data_loader(filepath,type="val",shuffle=True)
+    # train_data,train_num = data_loader(filepath, type="train", shuffle=True)
+    # val_data,v = data_loader(filepath,type="val",shuffle=True)
     # test_images,true_labels,test_imagepath =load_test_data(filepath)
+
+    train_data,train_num = load_data_by_keras(filepath,type="train",shuffle=True)
+    val_data,val_num = load_data_by_keras(filepath,type="val",shuffle=True)
 
     base_model = keras.applications.densenet.DenseNet121(weights='./models/DenseNet-BC-121-32-no-top.h5',
                                                     include_top=False,
@@ -73,19 +78,25 @@ if __name__ == "__main__":
                   optimizer=optimizer,
                   metrics=['accuracy'])
     model.summary()
-    plot_model(model, to_file='model.png')
+    # plot_model(model, to_file='model.png')
     steps_per_epoch = round(train_num / batch_size)
+    validation_steps = val_num / batch_size
     reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.2,
                                   patience=5, min_lr=0.001)
 
-    model_name = "DenseNet-{}".format(int(time.time()))
-    tensorboard = TensorBoard(log_dir='logs/{}'.format(model_name))
-    history = model.fit(train_data,
+    model_name = "DenseNet"
+    log_dir = os.getcwd()
+    log_dir = os.path.join(log_dir,"logs")
+    log_dir = os.path.join(log_dir,model_name)
+    print("model save at {}".format(log_dir))
+    tensorboard = TensorBoard(log_dir=log_dir)
+    history = model.fit_generator(generator=train_data,
                         epochs=epoch,
                         verbose = 2,
-                        steps_per_epoch = steps_per_epoch,
+                        steps_per_epoch = 128,
                         validation_data= val_data,
-                        # callbacks=[tensorboard,reduce_lr]
+                        validation_steps= 128,
+                        callbacks=[tensorboard,reduce_lr]
                         )
     print('history dict:', history.history)
 
@@ -129,6 +140,6 @@ if __name__ == "__main__":
 
     model.save("./models/DenseNet.h5")
     print("Success Save Model!")
-    #
+
     # model.evaluate(val_data)
 
