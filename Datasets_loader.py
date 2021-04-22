@@ -87,8 +87,8 @@ def data_loader(data_path, type , shuffle = True):
     image_ds = path_ds.map(load_and_preprocess_image, num_parallel_calls=AUTOTUNE)
     print(image_ds)
     #
-    # label_ds = tf.data.Dataset.from_tensor_slices(tf.cast(all_image_labels, tf.int64))
-    # print(label_ds)
+    label_ds = tf.data.Dataset.from_tensor_slices(tf.cast(all_image_labels, tf.int64))
+    print(label_ds)
 
     ds = tf.data.Dataset.from_tensor_slices((all_image_paths, all_image_labels))
 

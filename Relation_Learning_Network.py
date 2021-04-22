@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from Datasets_loader import *
 import imagenet_classes
-
+from tensorflow.keras.preprocessing import image
 
 
 def relationship_network(weight = None,
@@ -85,24 +85,24 @@ def merge_input(x1,x2):
     x = tf.concat([x1,x2],3)
     return x
 
-if __name__ == "__main__":
-
+def test(filepath):
     model = embed_Network(weight='imagenet',
                           include_top=True,
                           classes=1000,
-                          input_shape = (224,224,3))
+                          input_shape=(224, 224, 3))
     model.summary()
 
-    images = []
-    filepath = "D:\Programming/tensorflow\data\img3.jpg"
-    image = load_and_preprocess_image(filepath)
-    images.append(image)
-    image = load_and_preprocess_image("D:\Programming/tensorflow\data\img9.jpg")
-    images.append(image)
+    # images = []
+    # images = load_and_preprocess_image(filepath)
+    # images.append(image)
+    # image = load_and_preprocess_image("D:\Programming/tensorflow\data\img9.jpg")
+    # images.append(image)
     # plt.imshow(image)
     # plt.show()
+    images = image.load_img(filepath, target_size=(224, 224))
+    images = np.asarray(images)
 
-    images = tf.stack(images, axis=0)
+    images = np.expand_dims(images,axis=0)
 
     # 读取imagenet_classes.py文件下记录的标签对应英文名
     # labels = imagenet_classes.get_labels()
@@ -116,6 +116,19 @@ if __name__ == "__main__":
     # model.summary()
 
     result = model.predict(images)
-    print(result.shape)
+    preds = (np.argsort(result)[::-1])[0:5]
+    # print(preds)
+
+    return preds
+    # print(result.shape)
     # print(labels[np.argmax(result)])
+
+if __name__ == "__main__":
+    filepath = "D:\Programming/tensorflow\data\img3.jpg"
+    result = test(filepath)
+    labels = imagenet_classes.get_labels()
+    # prediction = labels[np.argmax(result)]
+    for p in result:
+        print("{} have {} '%".format(labels[p],p))
+    # print(prediction)
 
