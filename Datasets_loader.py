@@ -222,8 +222,8 @@ def load_data_by_keras(data_path,type,shuffle= False):
     return train_data_gen,total_train
 
 if __name__ == "__main__":
-    # filepath = "D:\BaiduNetdiskDownload\dataset_release/release_data"
-    filepath = "D:\datasets\ChineseFoodNet/release_data"
+    filepath = "D:\BaiduNetdiskDownload\dataset_release/release_data"
+    # filepath = "D:\datasets\ChineseFoodNet/release_data"zha
 
     # train_data = data_loader(filepath,type="train",shuffle= True)
     # val_data = data_loader(filepath,type="val",shuffle=True)

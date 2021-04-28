@@ -52,7 +52,6 @@ def relationship_network(weight = None,
     if weight != None and os.path.exists(weight):
         model.load_weights(weight)
 
-
     return model
 """
 """
@@ -100,7 +99,10 @@ def test(filepath):
     # plt.imshow(image)
     # plt.show()
     images = image.load_img(filepath, target_size=(224, 224))
+    plt.imshow(images)
+    plt.show(images)
     images = np.asarray(images)
+
 
     images = np.expand_dims(images,axis=0)
 
@@ -124,11 +126,13 @@ def test(filepath):
     # print(labels[np.argmax(result)])
 
 if __name__ == "__main__":
-    filepath = "D:\Programming/tensorflow\data\img3.jpg"
+    filepath = "D:\Programming/tensorflow\data\img5.jpg"
     result = test(filepath)
     labels = imagenet_classes.get_labels()
-    # prediction = labels[np.argmax(result)]
-    for p in result:
-        print("{} have {} '%".format(labels[p],p))
-    # print(prediction)
+    print(result)
+    prediction = labels[np.argmax(result)]
+
+    # for p in result:
+    #     print("{} have {} '%".format(labels[p],p))
+    print(prediction)
 
