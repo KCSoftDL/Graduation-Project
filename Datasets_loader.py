@@ -10,8 +10,8 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 im_height = 224
 im_width = 224
-batch_size = 128
-epochs = 1000
+batch_size = 16
+epochs = 200
 
 def preprocess_datapath(data_path,type):
     if (type == "train"):
@@ -184,29 +184,29 @@ def load_test_data(data_path):
 
 
 def load_data_by_keras(data_path,type,shuffle= False):
+    with tf.device('/device:CPU:0'):
+        data_path, label_file = preprocess_datapath(data_path, type)
+        print(data_path)
 
-    data_path, label_file = preprocess_datapath(data_path, type)
-    print(data_path)
+        lables = os.listdir(data_path)
+        print("the class is {}".format(lables))
 
-    lables = os.listdir(data_path)
-    print("the class is {}".format(lables))
-
-    train_image_generator = ImageDataGenerator(rescale=1. / 255,  # 归一化
-                                               rotation_range=40,  # 旋转范围
-                                               width_shift_range=0.1,  # 水平平移范围
-                                               height_shift_range=0.1,  # 垂直平移范围
-                                               shear_range=0.1,  # 剪切变换的程度
-                                               zoom_range=0.1,  # 缩放范围
-                                               horizontal_flip=True,  # 水平翻转
-                                               fill_mode='nearest')
-    # 使用图像生成器从文件夹train_dir中读取样本，对标签进行one-hot编码
-    train_data_gen = train_image_generator.flow_from_directory(directory=data_path,
-                                                               batch_size=batch_size,
-                                                               shuffle=shuffle,  # 打乱数据
-                                                               target_size=(im_height, im_width),
-                                                               class_mode='categorical')
-    total_train = train_data_gen.n
-    print(total_train)
+        train_image_generator = ImageDataGenerator(rescale=1. / 255,  # 归一化
+                                                   rotation_range=40,  # 旋转范围
+                                                   width_shift_range=0.1,  # 水平平移范围
+                                                   height_shift_range=0.1,  # 垂直平移范围
+                                                   shear_range=0.1,  # 剪切变换的程度
+                                                   zoom_range=0.1,  # 缩放范围
+                                                   horizontal_flip=True,  # 水平翻转
+                                                   fill_mode='nearest')
+        # 使用图像生成器从文件夹train_dir中读取样本，对标签进行one-hot编码
+        train_data_gen = train_image_generator.flow_from_directory(directory=data_path,
+                                                                   batch_size=batch_size,
+                                                                   shuffle=shuffle,  # 打乱数据
+                                                                   target_size=(im_height, im_width),
+                                                                   class_mode='categorical')
+        total_train = train_data_gen.n
+        print(total_train)
 
     # data, labels = train_data_gen.next()
     # print(labels)
@@ -225,9 +225,9 @@ if __name__ == "__main__":
     filepath = "D:\BaiduNetdiskDownload\dataset_release/release_data"
     # filepath = "D:\datasets\ChineseFoodNet/release_data"zha
 
-    # train_data = data_loader(filepath,type="train",shuffle= True)
+    train_data = data_loader(filepath,type="train",shuffle= True)
     # val_data = data_loader(filepath,type="val",shuffle=True)
-    val_data = load_data_by_keras(filepath,type="val",shuffle=True)
+    # val_data = load_data_by_keras(filepath,type="val",shuffle=True)
 
     # test_images,true_labels,test_imagepath =load_test_data(filepath)
     # print(true_labels[test_imagepath[1]])

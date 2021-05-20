@@ -99,8 +99,8 @@ def test(filepath):
     # plt.imshow(image)
     # plt.show()
     images = image.load_img(filepath, target_size=(224, 224))
-    plt.imshow(images)
-    plt.show(images)
+    # plt.imshow(images)
+    # plt.show(images)
     images = np.asarray(images)
 
 

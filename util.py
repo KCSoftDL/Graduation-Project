@@ -3,6 +3,7 @@ import pathlib
 import pandas as pd
 import tensorflow as tf
 from tflearn.data_utils import build_hdf5_image_dataset
+import xml.etree.ElementTree as ET
 
 def read_from_dir_and_write(path):
     data_root = pathlib.Path(path)
@@ -86,17 +87,22 @@ def create_VOC_data_txt(path,txt_path):
     lables = os.listdir(path)
     with open(txt_path,'w+', encoding='utf-8') as f:
         for lable in lables:
+            print("start write {}'s image data".format(lable))
             image = os.listdir(path + "/"+ lable)
             for i in range(len(image)):
                 image[i] = lable + "/" + image[i]
-                f.write(image[i]+'\n')
-
+                write_txt = image[i].replace(".jpg","")
+                print("now,write the {}".format(write_txt))
+                f.write(write_txt+'\n')
+    print("Finish writing!")
 
 def rewrite_data(train_path,val_path):
     build_hdf5_image_dataset(train_path, image_shape=(488, 488), mode='file', output_path='new_train_488.h5',
                              categorical_labels=True, normalize=False)
+    print('Done creating new_train_488.h5')
     build_hdf5_image_dataset(val_path, image_shape=(224, 224), mode='file', output_path='new_val_224.h5',
                              categorical_labels=True, normalize=False)
+    print('Done creating new_val.h5')
 
 def read_chinesefoodnet_from_xlsx(path):
     '''
@@ -113,16 +119,128 @@ def read_chinesefoodnet_from_xlsx(path):
     # print(cols1[000][0])
     return cols0,cols1,cols2
 
+def rewrite_xml(path,new_path):
+    '''
+    替换错误的标签名，然后按正确的命名方式保存Xml标注文件
+    :param path: 原文件存放path
+    :param new_path: 新文件存放Path
+    :return:
+    '''
+    labels = os.listdir(path)
+    useless = os.path.join(new_path,"useless.txt")
+    f = open(useless,'w+',encoding='utf-8')
+    for label in labels:
+        print("now write {} files".format(label))
+        cwd = os.path.join(path,label)
+        files = os.listdir(cwd)
+        print(files)
+        old_file = files[0]
+        for file in files:
+            t = 0
+            print("read {} file".format(file))
+            if(file == 'desktop.ini'):
+                continue
+            filename = os.path.join(cwd,file)
+            tree = ET.parse(filename)
+            objs = tree.findall('object')
+            for obj in objs:
+                obj.find('name').text = label
+            file = file.replace(".xml","")
+            # print(file)
+
+            #验证是否连续，不连续写下当前文件
+            index = int(file)
+            if ( old_file == files[0]):
+                old = int(file)
+                t = 1
+            old_file = file
+            if  (not index == old +1 and t):
+                f.writelines(label+'/'+str(old+1)+'\n')
+                while( not index == old):
+                    old += 1
+                    if not (index == old):
+                        f.writelines(label + '/' + str(old) + '\n')
+
+
+            file_path = os.path.join(new_path,label)
+            if not (os.path.exists(file_path)):
+                os.mkdir(file_path)
+            file_path = os.path.join(file_path,file + ".xml")
+            print("write in {}".format(file_path))
+            tree.write(file_path, encoding="utf-8",xml_declaration=True)
+
+    f.close()
+    print("Finish writing,all xml are right!")
+
+import csv
+def temp():
+    excle_file = "B-CNN_train.csv"
+    excle_path = os.path.join(os.getcwd(),excle_file)
+    f = open(excle_path,'w',encoding='utf-8')
+    csv_writer = csv.writer(f)
+    csv_writer.writerow(["train_loss", "train_acc"])
+
+    csv_writer.writerow(["l", '18'])
+
+    f.close()
+
+
+from xml.etree.ElementTree import ElementTree, Element
+import cv2
+
+
+def read_xml(in_path):
+    '''''读取并解析xml文件
+     in_path: xml路径
+     return: ElementTree
+     '''
+    tree = ElementTree()
+    tree.parse(in_path)
+    return tree
+
+
+def search_jpeg():
+    url = "D:\BaiduNetdiskDownload\dataset_release/release_data"
+    xml_path ="D:\健康拍立得\datasets\ChineseFoodNet/label"
+    url = os.path.join(url,'train')
+    labels = os.listdir(url)
+    for label in labels:
+        path = os.path.join(url,label)
+        xml = os.path.join(xml_path,label)
+        print("search {}".format(label))
+        for item in os.listdir(path):
+            width = cv2.imread(path + "/" + item).shape[0]
+            file = item.replace(".jpg",".xml")
+            file = os.path.join(xml,file)
+            tree = read_xml(file)
+            objs = tree.findall('object')
+            for obj in objs:
+                bbox = obj.find('bndbox')
+                x2 = float(bbox.find('xmax').text) - 1
+                y2 = float(bbox.find('ymax').text) - 1
+                if width < y2:  # 这里因为我知道出问题的图片width为1920，所以判断一下就行。如果不知道的话，需要与xml的xmax进行比较
+                    print("width={},ymax={}".format(width,x2))
+                    print(label + "/"+ item)
+
 if __name__ == "__main__":
     path = "D:\BaiduNetdiskDownload\dataset_release/release_data"
     txt_path = path + "/trainval.txt"
-    text_path ="D:\健康拍立得\datasets\ChineseFoodNet/useless.txt"
+    text_path =path +"/useless.txt"
+    test_path = "D:\健康拍立得\datasets\ChineseFoodNet"
     # train_path = write_txt_from_dir(path + '/train','train',target_size=448)
     # val_path = write_txt_from_dir(path,'val',target_size=224)
+    # train_path = "D:/BaiduNetdiskDownload/dataset_release/release_data/train_list.txt"
+    # val_path = "D:/BaiduNetdiskDownload/dataset_release/release_data/val_list.txt"
+    # rewrite_data(train_path,val_path)
     # read_chinesefoodnet_from_xlsx(path)
     # train_path = os.path.join(path,'train')
+    #
+    # # read_and_rewrite(text_path)
+    # # remove_useless_img(train_path,text_path)
+    #
+    # # newpath = os.path.join(test_path,'rewrite_test')
+    # # filespath = os.path.join(test_path,'error')
+    # # rewrite_xml(filespath,newpath)
+    #
     # create_VOC_data_txt(train_path,txt_path)
-    test_path = "D:\data"
-    # read_and_rewrite(text_path)
-    remove_useless_img(test_path,text_path)
-
+    search_jpeg()

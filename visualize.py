@@ -1,16 +1,20 @@
 import os
 import sys
 from PyQt5.QtWidgets import *
-from Relation_Learning_Network import test
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+# from Relation_Learning_Network import test
 import imagenet_classes
 import numpy as np
 import util
 import matplotlib.pyplot as plt
 from mainWindows import *
+from VGG16 import predicts as vgg16_predict
 
-class MainForm(QWidget):
-    def __init__(self, name='MainForm'):
-        super(MainForm, self).__init__()
+class Choose_FileAndMode_Form(QWidget):
+    Signal_OneParameter = pyqtSignal(str)
+    def __init__(self, name='Choose_Form'):
+        super(Choose_FileAndMode_Form, self).__init__()
         self.setWindowTitle(name)
         self.cwd = os.getcwd()  # 获取当前程序文件位置
         self.resize(300, 200)  # 设置窗体大小
@@ -41,9 +45,10 @@ class MainForm(QWidget):
             print("取消选择")
             return
         else:
+            self.Signal_OneParameter.emit(fileName_choose)
+            print("Choose {}".format(fileName_choose))
             # result = test(fileName_choose)
 
-            _,labels,englishname = util.read_chinesefoodnet_from_xlsx(self.path)
             # 读取imagenet_classes.py文件下记录的标签对应英文名
             # labels = imagenet_classes.get_labels()
             # print(result)
@@ -71,25 +76,40 @@ class MainWindow(QMainWindow,Ui_MainWindow):
         QMainWindow.__init__(self)
         Ui_MainWindow.__init__(self)
         self.setupUi(self)
-        self.openButton.clicked.connect(self.slot_btn_chooseFile)
 
+        self.dialog = Choose_FileAndMode_Form('Choose')
+        self.openButton.clicked.connect(self.slot_btn_chooseFile)
+        self.openButton_2.clicked.connect(self.slot_btn_chooseFile_2)
+        self.openButton_3.clicked.connect(self.slot_btn_chooseFile_3)
+        # self.image = file
         self.path = "D:\BaiduNetdiskDownload\dataset_release/release_data"
+        self.methodology = -1
+
+        self.dialog.Signal_OneParameter.connect(self.Recfilename)
+
+    def Recfilename(self,str):
+        self.image = str
+        print("in MainWindow recv{}".format(self.image))
+        self.dialog.hide()
+        self.predict()
+
+    def slot_btn_chooseFile_3(self):
+        print("choose file...")
+        self.methodology = 3
+        self.dialog.show()
+
+    def slot_btn_chooseFile_2(self):
+        print("choose file...")
+        self.methodology = 2
+        self.dialog.show()
 
     def slot_btn_chooseFile(self):
         print("choose file...")
-        fileName_choose, filetype = QFileDialog.getOpenFileName(self,
-                                                                "选取文件",
-                                                                self.cwd,  # 起始路径
-                                                                "All Files (*);;Text Files (*.txt)")  # 设置文件扩展名过滤,用双分号间隔
+        self.methodology = 1
+        self.dialog.show()
+        # print(self.image)
+        # fileName_choose = os.path.join(self.path,"test/000000.jpg")
 
-        if fileName_choose == "":
-            print("取消选择")
-            return
-        else:
-            jpg = QtGui.QPixmap(fileName_choose).scaled(self.showImage.width(),self.showImage.height())
-            self.showImage.setPixmap(jpg)
-
-            _,labels,englishname = util.read_chinesefoodnet_from_xlsx(self.path)
 
             # result = test(fileName_choose)
             # 读取imagenet_classes.py文件下记录的标签对应英文名
@@ -106,10 +126,30 @@ class MainWindow(QMainWindow,Ui_MainWindow):
             #     print("[info] you clicked no button!")
         # print("你选择的文件为:{}".format(fileName_choose))
 
+    def predict(self):
+        # self.image = os.path.join(self.path, "test/000000.jpg")
+        jpg = QtGui.QPixmap(self.image).scaled(self.showImage.width(), self.showImage.height())
+        self.showImage.setPixmap(jpg)
+        id,ChineseName,EnglishName = util.read_chinesefoodnet_from_xlsx(self.path)
+        if (self.methodology == 1):
+            # result = 133
+            predict = vgg16_predict(self.image)
+            result = predict[0]
+            self.predict_result.setText("name:{} probability:{}".format(result[0][0],result[0][1]))
+            self.predict_result_2.setText("name:{} probability:{}".format(result[1][0],result[1][1]))
+            self.predict_result_3.setText("name:{} probability:{}".format(result[2][0], result[2][1]))
+        elif(self.methodology == 2):
+            result = 123
+        elif(self.methodology == 3):
+            result = 134
+        else: raise ValueError
+        if not (self.methodology == 1):
+            self.predict_result.setText("code:{} mean:{}".format(result,ChineseName[result][0]))
+
 
 if __name__=="__main__":
     app = QApplication(sys.argv)
-    # mainForm = MainForm('测试QFileDialog')
+    # mainForm = Choose_FileAndMode_Form('Main')
     # mainForm.show()
     mainWindow = MainWindow()
     mainWindow.show()
