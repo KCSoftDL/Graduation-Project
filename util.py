@@ -83,7 +83,7 @@ def write_txt_from_dir(path,name,target_size):
             f.write(obj)
     return textpath
 
-def create_VOC_data_txt(path,txt_path):
+def create_VOC_data_txt(path,txt_path, type = ".jpg"):
     lables = os.listdir(path)
     with open(txt_path,'w+', encoding='utf-8') as f:
         for lable in lables:
@@ -91,7 +91,7 @@ def create_VOC_data_txt(path,txt_path):
             image = os.listdir(path + "/"+ lable)
             for i in range(len(image)):
                 image[i] = lable + "/" + image[i]
-                write_txt = image[i].replace(".jpg","")
+                write_txt = image[i].replace(type,"")
                 print("now,write the {}".format(write_txt))
                 f.write(write_txt+'\n')
     print("Finish writing!")
