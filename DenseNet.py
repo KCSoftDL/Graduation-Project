@@ -346,11 +346,53 @@ def fine_tune():
     plt.legend(['Pre_fine', 'Aft_fine'])
     plt.show()
 
+def eval_with_fasterr_cnn(val_X,val_Y):
+    model = keras.models.load_model("models/DenseNet121.h5")
+    model.summary()
+    #
+    # # val_data, val_num = load_data_by_keras(filepath, type="val", shuffle=True)
+    #
+    # queue = model.evaluate(val_X,val_Y)
+    # print(queue)
+    total_acc = 0
+    preds = model.predict_on_batch(val_X)
+    for i in range(16):
+        pred = preds[i]
+        # top_indices = np.argmax(pred)
+        top_indices = pred.argsort()[-3:][::-1]
+        correct_prediction = tf.equal(top_indices[0], np.argmax(val_Y, axis=1)[i])
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        total_acc += accuracy
+    return total_acc
+
+def _test():
+    datapath = "D:\BaiduNetdiskDownload\dataset_release/release_data"
+    val_data, val_num = load_data_by_keras(datapath, type="val", shuffle=False)
+    batch_size = Datasets_loader.batch_size
+    val_X,val_Y = val_data.next()
+    datapath = os.path.join(datapath,"val")
+    labellist = os.listdir(datapath)
+    # print(labellist)
+    for i in range(batch_size):
+        label = labellist[0]
+        filenames = os.listdir(os.path.join(datapath,label))
+        filename = os.path.join(datapath,label,filenames[i])
+        image = Image.open(filename)
+        plt.subplot(1, 2, 1)
+        plt.imshow(image)
+        plt.title(np.argmax(val_Y, axis=1)[i])
+
+        plt.subplot(1,2,2)
+        plt.imshow(val_X[i,:,:,:])
+        plt.title(np.argmax(val_Y, axis=1)[i])
+        plt.show()
+
 if __name__ == "__main__":
     # train()
     # Retrain()
-    imagepath = 'D:\BaiduNetdiskDownload\dataset_release/release_data/val/000/000000.jpg'
-    predicts(imagepath,ty)
+    # imagepath = 'D:\BaiduNetdiskDownload\dataset_release/release_data/val/000/000000.jpg'
+    # predicts(imagepath)
     # draw()
     # fine_tune()
     # evaluation()
+    _test()

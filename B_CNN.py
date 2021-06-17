@@ -390,7 +390,7 @@ def train():
                 # print("Training Accuracy -->", accuracy.eval(feed_dict={imgs: batch_xs, target: batch_ys}, session=sess))
                 train_acc = sess.run(accuracy, feed_dict={imgs: batch_xs, target: batch_ys})
                 print("Training Accuracy -->", train_acc)
-                csv_writer.writerow([cost, accuracy])
+                csv_writer.writerow([cost, train_acc])
 
         f.close()
         excle_file = "B-CNN_val.csv"

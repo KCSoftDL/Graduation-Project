@@ -4,6 +4,7 @@ import pandas as pd
 import tensorflow as tf
 from tflearn.data_utils import build_hdf5_image_dataset
 import xml.etree.ElementTree as ET
+import matplotlib.pyplot as plt
 
 def read_from_dir_and_write(path):
     data_root = pathlib.Path(path)
@@ -222,6 +223,23 @@ def search_jpeg():
                     print("width={},ymax={}".format(width,x2))
                     print(label + "/"+ item)
 
+def draw_faster_rcnn_loss():
+    path = "D:\Programming\Reference\Faster-RCNN-TensorFlow-Python3\data/loss.txt"
+    f = open(path,'r')
+    loss = []
+    lines = f.readlines()
+    # print(lines)
+    for line in lines:
+        line = line.replace('\n','')
+        num = float(line)
+        loss.append(num)
+    print(loss)
+    loss = loss[1300:]
+    plt.plot(loss,label="train_loss")
+    plt.legend(['train_loss'])
+    f.close()
+    plt.show()
+
 if __name__ == "__main__":
     path = "D:\BaiduNetdiskDownload\dataset_release/release_data"
     txt_path = path + "/trainval.txt"
@@ -243,4 +261,6 @@ if __name__ == "__main__":
     # # rewrite_xml(filespath,newpath)
     #
     # create_VOC_data_txt(train_path,txt_path)
-    search_jpeg()
+    # search_jpeg()
+
+    draw_faster_rcnn_loss()
